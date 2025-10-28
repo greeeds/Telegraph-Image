@@ -4,6 +4,8 @@ function getCorsHeaders(request, env) {
     const baseHeaders = {
         'Access-Control-Allow-Methods': 'POST, OPTIONS',
         'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+        'Access-Control-Expose-Headers': '*',
+        'Access-Control-Allow-Credentials': 'true'
     };
     // Read allowed origins from environment. Default to '*' for backward compatibility or ease of setup.
     const allowedOriginsStr = env.ALLOWED_ORIGINS || '*';
