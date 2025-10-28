@@ -1,5 +1,19 @@
 import { errorHandling, telemetryData } from "./utils/middleware";
 
+function UnauthorizedException(reason = 'Unauthorized') {
+    return new Response(reason, {
+        status: 401,
+        statusText: 'Unauthorized',
+        headers: {
+            'Content-Type': 'text/plain;charset=UTF-8',
+            // Disables caching by default.
+            'Cache-Control': 'no-store',
+            // Returns the "Content-Length" header for HTTP HEAD requests.
+            'Content-Length': reason.length,
+        },
+    });
+}
+
 function getCorsHeaders(request, env) {
     const baseHeaders = {
         'Access-Control-Allow-Methods': 'POST, OPTIONS',
@@ -32,6 +46,10 @@ export async function onRequestOptions(context) {
     for (let key in headers) {
         newHeaders.set(key, headers[key]);
     }
+    const authorization = request.headers.get('Authorization');
+    if (env.Authorization && env.Authorization !== authorization) {
+        return UnauthorizedException();
+    }
     return new Response(null, {
         status: 204,
         headers: newHeaders,
@@ -57,6 +75,10 @@ function jsonResponse(body, status = 200, context) {
 export async function onRequestPost(context) {
     const { request, env } = context;
 
+    const authorization = request.headers.get('Authorization');
+    if (env.Authorization && env.Authorization !== authorization) {
+        return UnauthorizedException();
+    }
     try {
         const clonedRequest = request.clone();
         const formData = await clonedRequest.formData();
