@@ -1,21 +1,47 @@
 import { errorHandling, telemetryData } from "./utils/middleware";
 
-const corsHeaders = {
-    'Access-Control-Allow-Origin': '*', // 允许任何来源的请求，为了安全可以替换为你的特定域名
-    'Access-Control-Allow-Methods': 'POST, OPTIONS', // 允许的方法
-    'Access-Control-Allow-Headers': 'Content-Type', // 允许的请求头
-};
-/**
- * 处理 OPTIONS 预检请求
- * 这是 Cloudflare Pages Functions 的方式来处理特定 HTTP 方法
- * @returns {Response}
- */
+function getCorsHeaders(request, env) {
+    const baseHeaders = {
+        'Access-Control-Allow-Methods': 'POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type',
+    };
+    // Read allowed origins from environment. Default to '*' for backward compatibility or ease of setup.
+    const allowedOriginsStr = env.ALLOWED_ORIGINS || '*';
+    if (allowedOriginsStr === '*') {
+        return {
+            ...baseHeaders,
+            'Access-Control-Allow-Origin': '*',
+        };
+    }
+    const requestOrigin = request.headers.get('Origin');
+    const allowedOrigins = allowedOriginsStr.split(',').map(origin => origin.trim());
+    if (requestOrigin && allowedOrigins.includes(requestOrigin)) {
+        return {
+            ...baseHeaders,
+            'Access-Control-Allow-Origin': requestOrigin,
+        };
+    }
+    return baseHeaders;
+}
 export async function onRequestOptions(context) {
+    const { request, env } = context;
+    const headers = getCorsHeaders(request, env);
     return new Response(null, {
         status: 204,
-        headers: corsHeaders,
+        headers: headers,
     });
 }
+function jsonResponse(body, status = 200, context) {
+    const { request, env } = context;
+    const baseHeaders = { 'Content-Type': 'application/json' };
+    const corsHeaders = getCorsHeaders(request, env);
+
+    return new Response(JSON.stringify(body), {
+        status,
+        headers: { ...baseHeaders, ...corsHeaders },
+    });
+}
+
 export async function onRequestPost(context) {
     const { request, env } = context;
 
@@ -27,10 +53,9 @@ export async function onRequestPost(context) {
         telemetryData(context);
 
         const uploadFile = formData.get('file');
-        if (!uploadFile) {
-            throw new Error('No file uploaded');
+        if (!uploadFile || typeof uploadFile === 'string') {
+            return jsonResponse({ error: 'No file uploaded or invalid file data.' }, 400, context);
         }
-
         const fileName = uploadFile.name;
         const fileExtension = fileName.split('.').pop().toLowerCase();
 
@@ -78,23 +103,10 @@ export async function onRequestPost(context) {
                 }
             });
         }
-
-        return new Response(
-            JSON.stringify([{ 'src': `/file/${fileId}.${fileExtension}` }]),
-            {
-                status: 200,
-                headers: { 'Content-Type': 'application/json' }
-            }
-        );
+        return jsonResponse([{ 'src': `/file/${fileId}.${fileExtension}` }], 200, context);
     } catch (error) {
         console.error('Upload error:', error);
-        return new Response(
-            JSON.stringify({ error: error.message }),
-            {
-                status: 500,
-                headers: { 'Content-Type': 'application/json' }
-            }
-        );
+        return jsonResponse({ error: error.message }, 500, context);
     }
 }
 
