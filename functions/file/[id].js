@@ -35,7 +35,11 @@ export async function onRequest(context) {
 
     // Log response details
     console.log(response.ok, response.status);
-
+    const fileExtension = url.pathname.split('.').pop()?.toLowerCase() || '';
+    const contentType = getContentType(fileExtension);
+    if (contentType) {
+        response.headers.set('Content-Type', contentType);
+    }
     // Allow the admin page to directly view the image
     const isAdmin = request.headers.get('Referer')?.includes(`${url.origin}/admin`);
     if (isAdmin) {
@@ -152,4 +156,61 @@ async function getFilePath(env, file_id) {
         console.error('Error fetching file path:', error.message);
         return null;
     }
+}
+
+function getContentType(extension) {
+    const mimeTypes = {
+        // --- Text and Web ---
+        'html': 'text/html; charset=utf-8',
+        'css': 'text/css; charset=utf-8',
+        'js': 'application/javascript; charset=utf-8',
+        'json': 'application/json',
+        'xml': 'application/xml',
+        'txt': 'text/plain',
+        // --- Images ---
+        'png': 'image/png',
+        'jpg': 'image/jpeg',
+        'jpeg': 'image/jpeg',
+        'gif': 'image/gif',
+        'svg': 'image/svg+xml',
+        'webp': 'image/webp',
+        'ico': 'image/vnd.microsoft.icon',
+        'tiff': 'image/tiff',
+        'bmp': 'image/bmp',
+        'avif': 'image/avif',
+        // --- Audio ---
+        'mp3': 'audio/mpeg',
+        'wav': 'audio/wav',
+        'ogg': 'audio/ogg',
+        'm4a': 'audio/mp4',
+        'aac': 'audio/aac',
+        'flac': 'audio/flac',
+        // --- Video ---
+        'mp4': 'video/mp4',
+        'webm': 'video/webm',
+        'mov': 'video/quicktime',
+        'avi': 'video/x-msvideo',
+        'mkv': 'video/x-matroska',
+        'm3u8': 'application/vnd.apple.mpegurl',
+        'ts': 'video/mp2t',
+        // --- Documents ---
+        'pdf': 'application/pdf',
+        'doc': 'application/msword',
+        'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'xls': 'application/vnd.ms-excel',
+        'xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'ppt': 'application/vnd.ms-powerpoint',
+        'pptx': 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+        'rtf': 'application/rtf',
+        // --- Fonts ---
+        'woff': 'font/woff',
+        'woff2': 'font/woff2',
+        'ttf': 'font/ttf',
+        'otf': 'font/otf',
+        // --- Archives ---
+        'zip': 'application/zip',
+        'rar': 'application/vnd.rar',
+        '7z': 'application/x-7z-compressed',
+    };
+    return mimeTypes[extension] || null;
 }
