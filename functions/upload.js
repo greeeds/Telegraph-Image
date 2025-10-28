@@ -1,5 +1,21 @@
 import { errorHandling, telemetryData } from "./utils/middleware";
 
+const corsHeaders = {
+    'Access-Control-Allow-Origin': '*', // 允许任何来源的请求，为了安全可以替换为你的特定域名
+    'Access-Control-Allow-Methods': 'POST, OPTIONS', // 允许的方法
+    'Access-Control-Allow-Headers': 'Content-Type', // 允许的请求头
+};
+/**
+ * 处理 OPTIONS 预检请求
+ * 这是 Cloudflare Pages Functions 的方式来处理特定 HTTP 方法
+ * @returns {Response}
+ */
+export async function onRequestOptions(context) {
+    return new Response(null, {
+        status: 204,
+        headers: corsHeaders,
+    });
+}
 export async function onRequestPost(context) {
     const { request, env } = context;
 

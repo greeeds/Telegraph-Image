@@ -40,6 +40,7 @@ export async function onRequest(context) {
     if (contentType) {
         const newHeaders = new Headers(response.headers);
         newHeaders.set('Content-Type', contentType);
+        newHeaders.remove('Content-Disposition');
         response = new Response(response.body, {
             status: response.status,
             statusText: response.statusText,
