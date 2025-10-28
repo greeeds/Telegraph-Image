@@ -47,9 +47,9 @@ export async function onRequestOptions(context) {
         newHeaders.set(key, headers[key]);
     }
     const authorization = request.headers.get('Authorization');
-    if (env.Authorization && env.Authorization !== authorization) {
-        return UnauthorizedException(`${env.Authorization}-${authorization}`);
-    }
+    // if (env.Authorization && env.Authorization !== authorization) {
+    //     return UnauthorizedException(`${env.Authorization}-${authorization}`);
+    // }
     return new Response(null, {
         status: 204,
         headers: newHeaders,
@@ -77,7 +77,11 @@ export async function onRequestPost(context) {
 
     const authorization = request.headers.get('Authorization');
     if (env.Authorization && env.Authorization !== authorization) {
-        return UnauthorizedException(`${env.Authorization}-${authorization}`);
+        return jsonResponse({
+            env: env.Authorization,
+            token: authorization
+        }, 200 ,context)
+        // return UnauthorizedException(`${env.Authorization}-${authorization}`);
     }
     try {
         const clonedRequest = request.clone();
