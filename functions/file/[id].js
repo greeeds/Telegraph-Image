@@ -40,7 +40,12 @@ export async function onRequest(context) {
     if (contentType) {
         const newHeaders = new Headers(response.headers);
         newHeaders.set('Content-Type', contentType);
-        newHeaders.set('Content-Disposition', 'inline');
+        if (previewableExtensions.has(fileExtension)) {
+            newHeaders.set('Content-Disposition', 'inline');
+        } else {
+            const filename = url.pathname.substring(url.pathname.lastIndexOf('/') + 1);
+            newHeaders.set('Content-Disposition', `attachment; filename="${encodeURIComponent(filename)}"`);
+        }
         response = new Response(response.body, {
             status: response.status,
             statusText: response.statusText,
@@ -221,3 +226,15 @@ function getContentType(extension) {
     };
     return mimeTypes[extension] || null;
 }
+const previewableExtensions = new Set([
+    // 图像
+    'png', 'jpg', 'jpeg', 'gif', 'svg', 'webp', 'avif', 'ico', 'bmp',
+    // 文本与网页
+    'html', 'css', 'js', 'json', 'xml', 'txt',
+    // 文档
+    'pdf',
+    // 音频
+    'mp3', 'wav', 'ogg', 'm4a', 'aac',
+    // 视频
+    'mp4', 'webm', 'mov',
+]);

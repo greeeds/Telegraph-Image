@@ -26,19 +26,29 @@ function getCorsHeaders(request, env) {
 export async function onRequestOptions(context) {
     const { request, env } = context;
     const headers = getCorsHeaders(request, env);
+    const newHeaders = new Headers();
+    for (let key in headers) {
+        newHeaders.set(key, headers[key]);
+    }
     return new Response(null, {
         status: 204,
-        headers: headers,
+        headers: newHeaders,
     });
 }
 function jsonResponse(body, status = 200, context) {
     const { request, env } = context;
     const baseHeaders = { 'Content-Type': 'application/json' };
     const corsHeaders = getCorsHeaders(request, env);
-
+    const newHeaders = new Headers();
+    for (let key in baseHeaders) {
+        newHeaders.set(key, baseHeaders[key]);
+    }
+    for (let key in corsHeaders) {
+        newHeaders.set(key, corsHeaders[key]);
+    }
     return new Response(JSON.stringify(body), {
         status,
-        headers: { ...baseHeaders, ...corsHeaders },
+        headers: newHeaders,
     });
 }
 
