@@ -24,7 +24,7 @@ export async function onRequest(context) {
         fileUrl = `https://api.telegram.org/file/bot${env.TG_Bot_Token}/${filePath}`;
     }
 
-    const response = await fetch(fileUrl, {
+    let response = await fetch(fileUrl, {
         method: request.method,
         headers: request.headers,
         body: request.body,
@@ -38,6 +38,7 @@ export async function onRequest(context) {
     const fileExtension = url.pathname.split('.').pop()?.toLowerCase() || '';
     const contentType = getContentType(fileExtension);
     if (contentType) {
+        response = new Response(response.body, response);
         response.headers.set('Content-Type', contentType);
     }
     // Allow the admin page to directly view the image
