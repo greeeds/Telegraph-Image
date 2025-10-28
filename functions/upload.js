@@ -73,7 +73,7 @@ export async function onRequestPost(context) {
 
     const authorization = request.headers.get('Authorization');
     if (env.Authorization && env.Authorization !== authorization) {
-        return UnauthorizedException(`${env.Authorization}-${authorization}`);
+        return UnauthorizedException();
     }
     try {
         const clonedRequest = request.clone();
