@@ -3,7 +3,7 @@ import { errorHandling, telemetryData } from "./utils/middleware";
 function getCorsHeaders(request, env) {
     const baseHeaders = {
         'Access-Control-Allow-Methods': 'POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
     };
     // Read allowed origins from environment. Default to '*' for backward compatibility or ease of setup.
     const allowedOriginsStr = env.ALLOWED_ORIGINS || '*';
