@@ -38,8 +38,13 @@ export async function onRequest(context) {
     const fileExtension = url.pathname.split('.').pop()?.toLowerCase() || '';
     const contentType = getContentType(fileExtension);
     if (contentType) {
-        response = new Response(response.body, response);
-        response.headers.set('Content-Type', contentType);
+        const newHeaders = new Headers(response.headers);
+        newHeaders.set('Content-Type', contentType);
+        response = new Response(response.body, {
+            status: response.status,
+            statusText: response.statusText,
+            headers: newHeaders,
+        });
     }
     // Allow the admin page to directly view the image
     const isAdmin = request.headers.get('Referer')?.includes(`${url.origin}/admin`);
